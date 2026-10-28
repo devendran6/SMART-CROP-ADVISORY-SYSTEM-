@@ -24,6 +24,13 @@ Small and marginal farmers can download the Android Application directly to thei
 
 ---
 
+## ⚡ One-Click Demo Access
+Anyone can test the entire platform with a single click without registering:
+- 🚀 **One-Click Demo Login:** Navigate to `/demo-login` (or click the yellow **"Demo Login"** button on the navbar/login card).
+- Automatically logs in as `demo_farmer` from **Pollachi, Coimbatore** with pre-configured crops (Paddy, Tomato, Groundnut) and localized disease alerts.
+
+---
+
 ## 🌟 System Overview
 
 The **Smart Crop Advisory System for Small and Marginal Farmers** is an intelligent AI-based agricultural software platform designed to democratize modern farming guidance. Small and marginal farmers often face severe financial risks due to lack of timely agronomic advice, market unpredictability, unpredictable rainfall, and devastating pest attacks. This platform unifies all critical advisory functions into a single mobile-friendly platform.

@@ -286,6 +286,46 @@ def login():
             return redirect(url_for('dashboard'))
     return render_template('login.html', action='login')
 
+@app.route('/demo-login')
+def demo_login():
+    conn = get_db()
+    user = conn.execute('SELECT * FROM users WHERE username=?', ('demo_farmer',)).fetchone()
+    if not user:
+        hashed = generate_password_hash('demo123')
+        conn.execute('''
+            INSERT INTO users (username, password, location, district, contact)
+            VALUES (?, ?, ?, ?, ?)
+        ''', ('demo_farmer', hashed, 'Pollachi', 'Coimbatore', 'demofarmer@smartcrop.in'))
+        conn.commit()
+        user = conn.execute('SELECT * FROM users WHERE username=?', ('demo_farmer',)).fetchone()
+
+        # Seed sample crops for demo farmer
+        conn.execute('''
+            INSERT INTO crops (user_id, crop_name, planted_date, area_size, soil_type, protection_strategy, status, quantity_info)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user['id'], 'Rice (Paddy)', '2026-08-15', '2.5 Acres', 'Clayey', 'Pseudomonas fluorescens (Organic)', 'Growing', 'Expected 55 quintals'))
+        conn.execute('''
+            INSERT INTO crops (user_id, crop_name, planted_date, area_size, soil_type, protection_strategy, status, quantity_info)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user['id'], 'Tomato', '2026-07-10', '1.0 Acre', 'Loamy', 'Mancozeb 75WP (Chemical)', 'Harvesting Soon', '45 quintals'))
+        conn.execute('''
+            INSERT INTO crops (user_id, crop_name, planted_date, area_size, soil_type, protection_strategy, status, quantity_info)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user['id'], 'Groundnut', '2026-09-01', '1.5 Acres', 'Sandy Loam', 'Trichoderma seed treatment', 'Planted', 'Expected 14 quintals'))
+        conn.execute('''
+            INSERT INTO disease_alerts (user_id, district, crop_name, disease_name, severity)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (user['id'], 'Coimbatore', 'Tomato', 'Early Blight', 'Medium'))
+        conn.commit()
+
+    conn.close()
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    session['location'] = user['location']
+    session['district'] = user['district'] or user['location']
+    flash('Logged in as Demo Farmer (Pollachi, Coimbatore) with 1-click! Feel free to explore all modules.', 'success')
+    return redirect(url_for('dashboard'))
+
 @app.route('/logout')
 def logout():
     session.clear()

@@ -29,7 +29,8 @@
                 <a href="{{ url_for('logout') }}" class="btn btn-danger-outline btn-sm">Logout</a>
             </div>
             {% else %}
-            <a href="{{ url_for('login') }}" class="btn btn-primary">Login / Register</a>
+            <a href="{{ url_for('demo_login') }}" class="btn btn-sm" style="background:linear-gradient(135deg,#ffd740,#ff9800);color:#0B110E;font-weight:800"><i class="fa-solid fa-bolt"></i> Demo Login</a>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Login / Register</a>
             {% endif %}
         </div>
     </nav>

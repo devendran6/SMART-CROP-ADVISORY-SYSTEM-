@@ -37,14 +37,39 @@
                     <h2>Welcome Back</h2>
                     <p>Log in to your Smart Crop Advisory account</p>
                 </div>
+
+                <!-- One-Click Demo Login Banner -->
+                <div style="background:rgba(255,215,64,0.12);border:2px solid var(--warning);border-radius:14px;padding:1.2rem;margin-bottom:1.8rem;text-align:center">
+                    <div style="font-size:0.85rem;font-weight:800;color:var(--warning);letter-spacing:1px;text-transform:uppercase;margin-bottom:0.4rem">
+                        <i class="fa-solid fa-bolt"></i> Instant Demo Access
+                    </div>
+                    <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:0.9rem">
+                        Explore all crop recommendations, disease detection, weather, and Tamil voice features immediately without entering a password!
+                    </p>
+                    <a href="{{ url_for('demo_login') }}" class="btn btn-block" style="background:linear-gradient(135deg,#ffd740,#ff9800);color:#0B110E;font-weight:800;font-size:1.05rem;box-shadow:0 4px 15px rgba(255,215,64,0.3);margin-top:0">
+                        <i class="fa-solid fa-play"></i> One-Click Demo Login (Demo Farmer)
+                    </a>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:1rem;margin:1.5rem 0;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:1.5px">
+                    <div style="flex:1;height:1px;background:var(--glass-border)"></div>
+                    <span>OR LOGIN WITH PASSWORD</span>
+                    <div style="flex:1;height:1px;background:var(--glass-border)"></div>
+                </div>
+
                 <form method="POST" action="{{ url_for('login') }}">
                     <div class="form-group">
                         <label><i class="fa-solid fa-user"></i> Username</label>
-                        <input type="text" name="username" placeholder="Enter username" required>
+                        <input type="text" id="loginUsername" name="username" placeholder="Enter username" required>
                     </div>
                     <div class="form-group">
                         <label><i class="fa-solid fa-lock"></i> Password</label>
-                        <input type="password" name="password" placeholder="Enter password" required>
+                        <input type="password" id="loginPassword" name="password" placeholder="Enter password" required>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+                        <button type="button" onclick="fillDemoCredentials()" style="background:none;border:none;color:var(--warning);cursor:pointer;font-size:0.82rem;text-decoration:underline">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-fill demo credentials
+                        </button>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">
                         <i class="fa-solid fa-sign-in-alt"></i> Login
@@ -103,6 +128,10 @@ function showTab(tab) {
     document.getElementById('loginPane').style.display = tab==='login' ? 'block' : 'none';
     document.getElementById('registerPane').style.display = tab==='register' ? 'block' : 'none';
     document.querySelectorAll('.auth-tab').forEach((t,i)=> t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+}
+function fillDemoCredentials() {
+    document.getElementById('loginUsername').value = 'demo_farmer';
+    document.getElementById('loginPassword').value = 'demo123';
 }
 </script>
 </body>
