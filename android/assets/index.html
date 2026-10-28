@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Smart Crop Advisory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00e676;
+            --primary-dark: #00c853;
+            --bg-dark: #0B110E;
+            --bg-light: #131F1A;
+            --glass-bg: rgba(19, 31, 26, 0.9);
+            --glass-border: rgba(0, 230, 118, 0.2);
+            --text-main: #e8f5e9;
+            --text-muted: #9abfa1;
+            --warning: #ffd740;
+            --danger: #ff5252;
+            --info: #40c4ff;
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var(--text-main); padding-bottom: 70px; line-height: 1.5; }
+        
+        /* App Header */
+        .app-bar { position: sticky; top: 0; z-index: 100; background: rgba(11, 17, 14, 0.95); backdrop-filter: blur(10px); padding: 12px 16px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+        .app-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.15rem; color: #fff; }
+        .app-brand i { color: var(--primary); font-size: 1.3rem; }
+        .server-btn { background: rgba(0, 230, 118, 0.15); border: 1px solid var(--primary); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        
+        /* Content Tabs */
+        .tab-content { display: none; padding: 16px; }
+        .tab-content.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-weight: 700; font-size: 1.1rem; }
+        .card-header i { font-size: 1.3rem; }
+        
+        /* Form Controls */
+        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .form-col { flex: 1; }
+        label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-family: inherit; font-size: 0.95rem; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 24px; font-family: inherit; font-weight: 700; font-size: 0.95rem; border: none; cursor: pointer; text-decoration: none; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: #0B110E; }
+        .btn-warning { background: linear-gradient(135deg, #ffd740, #ff9800); color: #0B110E; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        
+        /* Bottom Navigation */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(11, 17, 14, 0.98); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-tab { background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; cursor: pointer; flex: 1; }
+        .nav-tab i { font-size: 1.2rem; }
+        .nav-tab.active { color: var(--primary); }
+        
+        /* Results and Badges */
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .badge-green { background: rgba(0,230,118,0.15); color: var(--primary); border: 1px solid var(--primary); }
+        .badge-yellow { background: rgba(255,215,64,0.15); color: var(--warning); border: 1px solid var(--warning); }
+        .badge-red { background: rgba(255,82,82,0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .result-box { margin-top: 14px; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 10px; border-left: 4px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+    <!-- App Top Bar -->
+    <div class="app-bar">
+        <div class="app-brand">
+            <i class="fa-solid fa-leaf"></i>
+            <span>SmartCrop Advisory</span>
+        </div>
+        <button class="server-btn" onclick="openServerConfig()">
+            <i class="fa-solid fa-tower-broadcast"></i> Connect Server
+        </button>
+    </div>
+
+    <!-- TAB 1: HOME & QUICK DEMO -->
+    <div id="tabHome" class="tab-content active">
+        <div class="card" style="border: 2px solid var(--warning); background: rgba(255,215,64,0.08); text-align: center;">
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--warning); text-transform: uppercase; margin-bottom: 6px;">
+                <i class="fa-solid fa-bolt"></i> One-Click Demo Mode
+            </div>
+            <h2 style="font-size: 1.35rem; margin-bottom: 6px;">வணக்கம்! Welcome Farmer</h2>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">
+                AI-driven crop advisory for small and marginal farmers across Tamil Nadu & India.
+            </p>
+            <button class="btn btn-warning" onclick="connectLiveServer()">
+                <i class="fa-solid fa-play"></i> One-Click Connect to Live Server
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="color: var(--primary);">
+                <i class="fa-solid fa-compass"></i> AI Advisory Modules
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="switchTab('tabRecommend')" class="btn btn-outline" style="padding: 14px 8px; font-size: 0.85rem; flex-direction: column;">
+                    <i class="fa-solid fa-seedling" style="font-size: 1.4rem; color: var(--primary);"></i>
+                    <span>Crop Match</span>
+                </button>
+                <button onclick="switchTab('tabDisease')" class="btn btn-outline" style="padding: 14px 8px; font-size: 0.85rem; flex-direction: column;">
+                    <i class="fa-solid fa-microscope" style="font-size: 1.4rem; color: var(--warning);"></i>
+                    <span>Disease Scan</span>
+                </button>
+                <button onclick="switchTab('tabProfit')" class="btn btn-outline" style="padding: 14px 8px; font-size: 0.85rem; flex-direction: column;">
+                    <i class="fa-solid fa-chart-line" style="font-size: 1.4rem; color: var(--info);"></i>
+                    <span>Profit Estimate</span>
+                </button>
+                <button onclick="switchTab('tabWeather')" class="btn btn-outline" style="padding: 14px 8px; font-size: 0.85rem; flex-direction: column;">
+                    <i class="fa-solid fa-cloud-sun" style="font-size: 1.4rem; color: #80d8ff;"></i>
+                    <span>Weather Guide</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="color: var(--danger);">
+                <i class="fa-solid fa-phone"></i> Kisan Emergency Support
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Direct agricultural support lines for farmers:</p>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--glass-border); font-size: 0.88rem;">
+                <span>Kisan Call Centre (Toll-Free)</span>
+                <b style="color: var(--primary);">1800-180-1551</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.88rem;">
+                <span>TN Agriculture Portal</span>
+                <b style="color: var(--info);">agritech.tnau.ac.in</b>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: CROP RECOMMENDATION -->
+    <div id="tabRecommend" class="tab-content">
+        <div class="card">
+            <div class="card-header" style="color: var(--primary);">
+                <i class="fa-solid fa-seedling"></i> AI Crop Recommender
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Nitrogen (N)</label>
+                    <input type="number" id="recN" value="80">
+                </div>
+                <div class="form-col">
+                    <label>Phosphorus (P)</label>
+                    <input type="number" id="recP" value="40">
+                </div>
+                <div class="form-col">
+                    <label>Potassium (K)</label>
+                    <input type="number" id="recK" value="40">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Soil Type</label>
+                    <select id="recSoil">
+                        <option>Loamy</option>
+                        <option selected>Clayey</option>
+                        <option>Sandy Loam</option>
+                        <option>Black</option>
+                        <option>Red</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>District / Region</label>
+                    <select id="recDistrict">
+                        <option>Coimbatore</option>
+                        <option selected>Thanjavur</option>
+                        <option>Madurai</option>
+                        <option>Salem</option>
+                        <option>Trichy</option>
+                        <option>Tirunelveli</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="runCropMatch()">
+                <i class="fa-solid fa-brain"></i> Analyze & Suggest Best Crops
+            </button>
+
+            <div id="recResultBox" style="display: none;" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: DISEASE DETECTION -->
+    <div id="tabDisease" class="tab-content">
+        <div class="card">
+            <div class="card-header" style="color: var(--warning);">
+                <i class="fa-solid fa-microscope"></i> AI Leaf Disease Scanner
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                Take a photo of affected plant leaves for instant symptom analysis and treatment.
+            </p>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Select Crop</label>
+                    <select id="disCrop">
+                        <option>Rice (Paddy)</option>
+                        <option>Tomato</option>
+                        <option>Cotton</option>
+                        <option>Maize</option>
+                        <option>Groundnut</option>
+                    </select>
+                </div>
+            </div>
+
+            <input type="file" id="disFile" accept="image/*" capture="camera" style="display: none;" onchange="handleImageSelected(event)">
+            
+            <button class="btn btn-warning" onclick="document.getElementById('disFile').click()" style="margin-bottom: 10px;">
+                <i class="fa-solid fa-camera"></i> Take Photo or Select Leaf
+            </button>
+
+            <img id="leafPreview" style="display: none; width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin: 10px 0; border: 1px solid var(--primary);" />
+
+            <div id="diseaseResultBox" style="display: none;" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- TAB 4: PROFIT PREDICTOR -->
+    <div id="tabProfit" class="tab-content">
+        <div class="card">
+            <div class="card-header" style="color: var(--info);">
+                <i class="fa-solid fa-chart-line"></i> Yield & Profit Calculator
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Crop</label>
+                    <select id="profCrop">
+                        <option value="Rice">Rice (நெல்)</option>
+                        <option value="Tomato">Tomato (தக்காளி)</option>
+                        <option value="Groundnut">Groundnut (வேர்க்கடலை)</option>
+                        <option value="Maize">Maize (மக்காச்சோளம்)</option>
+                        <option value="Cotton">Cotton (பருத்தி)</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>Land Area (Acres)</label>
+                    <input type="number" id="profArea" value="1.0" step="0.5">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="calcProfit()">
+                <i class="fa-solid fa-calculator"></i> Calculate Net Income
+            </button>
+            <div id="profitResultBox" style="display: none;" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- TAB 5: WEATHER & TAMIL ASSISTANT -->
+    <div id="tabWeather" class="tab-content">
+        <div class="card">
+            <div class="card-header" style="color: #80d8ff;">
+                <i class="fa-solid fa-cloud-sun"></i> Tamil Nadu Weather & Irrigation
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #fff;">30°C</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Coimbatore / Thanjavur</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="color: var(--info); font-size: 0.9rem;">Humidity: 68%</div>
+                    <div style="color: var(--primary); font-size: 0.9rem;">Rainfall: 110mm</div>
+                </div>
+            </div>
+            <div style="padding: 10px; background: rgba(0,230,118,0.08); border-radius: 8px; font-size: 0.85rem; border-left: 3px solid var(--primary);">
+                💧 <b>Irrigation Tip:</b> Light drip irrigation recommended tomorrow morning (6:00 - 8:30 AM). Clear drainage channels.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" style="color: var(--warning);">
+                <i class="fa-solid fa-microphone"></i> தமிழ் விவசாய உதவியாளர்
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">கேள்விகளை தமிழில் கேட்கலாம்:</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="voiceQuery" placeholder="எ.கா: நெல் நோய் மருந்து என்ன?" style="flex: 1;">
+                <button onclick="speakVoiceQuery()" class="btn btn-warning" style="width: auto; padding: 0 16px;">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+            <div id="voiceAnswerBox" style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.88rem; color: var(--warning); display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <button class="nav-tab active" onclick="switchTab('tabHome')">
+            <i class="fa-solid fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('tabRecommend')">
+            <i class="fa-solid fa-seedling"></i>
+            <span>Crops</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('tabDisease')">
+            <i class="fa-solid fa-microscope"></i>
+            <span>Disease</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('tabProfit')">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Profit</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('tabWeather')">
+            <i class="fa-solid fa-cloud-sun"></i>
+            <span>Weather</span>
+        </button>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            const btnMap = { 'tabHome': 0, 'tabRecommend': 1, 'tabDisease': 2, 'tabProfit': 3, 'tabWeather': 4 };
+            document.querySelectorAll('.bottom-nav .nav-tab')[btnMap[tabId]].classList.add('active');
+        }
+
+        function openServerConfig() {
+            const url = prompt("Enter SmartCrop Live Server URL:", localStorage.getItem('server_url') || "http://10.139.213.164:5000");
+            if (url) {
+                localStorage.setItem('server_url', url);
+                window.location.href = url + "/demo-login";
+            }
+        }
+
+        function connectLiveServer() {
+            const serverUrl = localStorage.getItem('server_url') || "http://10.139.213.164:5000";
+            window.location.href = serverUrl + "/demo-login";
+        }
+
+        function runCropMatch() {
+            const n = parseFloat(document.getElementById('recN').value);
+            const soil = document.getElementById('recSoil').value;
+            const dist = document.getElementById('recDistrict').value;
+
+            let html = `<b>🌾 Top Crop Matches for ${dist} (${soil} Soil):</b><br><br>`;
+            if (soil === 'Clayey' || dist === 'Thanjavur') {
+                html += `1. <b>Rice (Paddy / நெல்)</b> — <span class="badge badge-green">96% Match</span><br>
+                         Sowing: Kuruvai / Samba · Market: ₹2,200/Q · Duration: 120 days<br><br>
+                         2. <b>Banana (வாழை)</b> — <span class="badge badge-green">91% Match</span><br>
+                         Annual crop · Water Need: High · High market demand<br>`;
+            } else {
+                html += `1. <b>Groundnut (வேர்க்கடலை)</b> — <span class="badge badge-green">94% Match</span><br>
+                         Sowing: Kharif · Market: ₹5,500/Q · Low water consumption<br><br>
+                         2. <b>Maize (மக்காச்சோளம்)</b> — <span class="badge badge-green">89% Match</span><br>
+                         Duration: 100 days · Yield: 30 Q/acre<br>`;
+            }
+            const box = document.getElementById('recResultBox');
+            box.innerHTML = html;
+            box.style.display = 'block';
+        }
+
+        function handleImageSelected(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const img = document.getElementById('leafPreview');
+            img.src = URL.createObjectURL(file);
+            img.style.display = 'block';
+
+            const crop = document.getElementById('disCrop').value;
+            const box = document.getElementById('diseaseResultBox');
+            box.style.display = 'block';
+            box.innerHTML = `
+                <div style="color: var(--danger); font-weight: 700; font-size: 1.1rem; margin-bottom: 6px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Detected: ${crop.includes('Rice') ? 'Rice Blast (குலை நோய்)' : 'Early Blight (இலை கருகல்)'}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">AI Confidence: 92%</div>
+                <div style="background: rgba(255,82,82,0.1); padding: 8px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 6px;">
+                    <b>Chemical:</b> Apply Tricyclazole 75WP @ 6g/10L or Mancozeb 75WP @ 25g/10L.
+                </div>
+                <div style="background: rgba(0,230,118,0.1); padding: 8px; border-radius: 6px; font-size: 0.85rem;">
+                    <b>Organic:</b> Spray Pseudomonas fluorescens (10g/L) or Neem Seed Kernel Extract (5%).
+                </div>
+            `;
+        }
+
+        function calcProfit() {
+            const crop = document.getElementById('profCrop').value;
+            const area = parseFloat(document.getElementById('profArea').value) || 1.0;
+
+            const data = {
+                'Rice': { yield_acre: 25, price: 2200, cost: 18000 },
+                'Tomato': { yield_acre: 60, price: 1200, cost: 35000 },
+                'Groundnut': { yield_acre: 8, price: 5500, cost: 20000 },
+                'Maize': { yield_acre: 30, price: 1700, cost: 12000 },
+                'Cotton': { yield_acre: 7, price: 5800, cost: 25000 }
+            }[crop] || { yield_acre: 20, price: 2000, cost: 15000 };
+
+            const totalYield = data.yield_acre * area;
+            const gross = totalYield * data.price;
+            const totalCost = data.cost * area;
+            const net = gross - totalCost;
+
+            const box = document.getElementById('profitResultBox');
+            box.style.display = 'block';
+            box.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 8px; font-size: 1.05rem;">
+                    📊 Financial Estimate for ${area} Acre(s) of ${crop}:
+                </div>
+                <div style="font-size: 0.9rem; margin-bottom: 4px;">• Expected Yield: <b>${totalYield} Quintals</b></div>
+                <div style="font-size: 0.9rem; margin-bottom: 4px;">• Gross Revenue: <b>₹${gross.toLocaleString('en-IN')}</b></div>
+                <div style="font-size: 0.9rem; margin-bottom: 4px;">• Cultivation Expenses: <b>₹${totalCost.toLocaleString('en-IN')}</b></div>
+                <div style="font-size: 1.15rem; color: var(--primary); font-weight: 800; margin-top: 8px;">
+                    Net Estimated Profit: ₹${net.toLocaleString('en-IN')}
+                </div>
+            `;
+        }
+
+        function speakVoiceQuery() {
+            const q = document.getElementById('voiceQuery').value.trim() || "நெல் நோய் மருந்து என்ன?";
+            const ans = "நெல் குலை நோய் கட்டுப்பாட்டிற்கு ட்ரைசைக்ளசோல் 75WP பத்து லிட்டர் தண்ணீருக்கு ஆறு கிராம் கலந்து தெளிக்கவும்.";
+            const box = document.getElementById('voiceAnswerBox');
+            box.textContent = ans;
+            box.style.display = 'block';
+
+            if ('speechSynthesis' in window) {
+                const utt = new SpeechSynthesisUtterance(ans);
+                utt.lang = 'ta-IN';
+                window.speechSynthesis.speak(utt);
+            }
+        }
+    </script>
+</body>
+</html>

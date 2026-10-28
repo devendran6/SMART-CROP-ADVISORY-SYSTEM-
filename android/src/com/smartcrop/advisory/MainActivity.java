@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_CHOOSER_RESULT_CODE = 1001;
     // Default online URL or local fallback
-    private static final String APP_URL = "http://10.0.2.2:5000";
+    private static final String APP_URL = "file:///android_asset/index.html";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
