@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Smart Crop Advisory - AI-Powered Agriculture{% endblock %}
+{% block content %}
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content">
+        <div class="hero-badge"><i class="fa-solid fa-robot"></i> AI-Powered Agriculture Platform</div>
+        <h1>Smart Crop Advisory<br><span class="text-primary">for Every Farmer</span></h1>
+        <p>Intelligent crop recommendations, disease detection, yield prediction, and Tamil voice assistance — all in one platform for small & marginal farmers.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-rocket"></i> Get Started Free
+            </a>
+            <a href="{{ url_for('download_page') }}" class="btn btn-outline btn-lg" style="border-color:var(--primary);color:var(--primary)">
+                <i class="fa-brands fa-android"></i> Download App (APK)
+            </a>
+            <a href="#features" class="btn btn-outline-light btn-lg">
+                <i class="fa-solid fa-play-circle"></i> Explore Features
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+    <div class="container">
+        <div class="stats-bar-grid">
+            <div class="stats-bar-item"><span class="stat-big">15+</span><span>Crops Supported</span></div>
+            <div class="stats-bar-item"><span class="stat-big">AI</span><span>Disease Detection</span></div>
+            <div class="stats-bar-item"><span class="stat-big">100%</span><span>Free Platform</span></div>
+            <div class="stats-bar-item"><span class="stat-big">தமிழ்</span><span>Voice Assistant</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="landing-section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <div class="hero-badge">Core Modules</div>
+            <h2>Everything a Farmer Needs</h2>
+            <div class="header-line"></div>
+            <p>Six powerful AI modules designed specifically for small and marginal farmers</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-green"><i class="fa-solid fa-seedling"></i></div>
+                <h3>Crop Recommendation</h3>
+                <p>AI analyzes your soil NPK values, temperature, rainfall, and humidity to suggest the most profitable crops for your land.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-yellow"><i class="fa-solid fa-microscope"></i></div>
+                <h3>Disease Detection</h3>
+                <p>Upload a photo of diseased plant leaves. Our AI identifies the disease, provides treatment recommendations and prevention tips.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-blue"><i class="fa-solid fa-cloud-sun"></i></div>
+                <h3>Weather Monitoring</h3>
+                <p>Real-time weather data with irrigation scheduling. Know when to water, when to spray, and when to harvest based on weather.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-red"><i class="fa-solid fa-bell"></i></div>
+                <h3>Location-Based Alerts</h3>
+                <p>Receive and report disease outbreak alerts for your district. Community-based early warning system to protect your crops.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-purple"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>Yield & Profit Prediction</h3>
+                <p>Estimate your expected harvest, cultivation costs, market income, and ROI. Compare multiple crops before planting.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card glass-panel">
+                <div class="feature-icon icon-orange"><i class="fa-solid fa-microphone"></i></div>
+                <h3>தமிழ் Voice Assistant</h3>
+                <p>Get agricultural guidance in Tamil language through voice commands and audio responses. Designed for rural farmers.</p>
+                <a href="{{ url_for('login') }}" class="feature-link">Try Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="landing-section bg-alt" id="about">
+    <div class="container">
+        <div class="section-header">
+            <div class="hero-badge">How It Works</div>
+            <h2>Simple Steps to Smart Farming</h2>
+            <div class="header-line"></div>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <i class="fa-solid fa-user-plus step-icon"></i>
+                <h3>Register</h3>
+                <p>Create your free account with your location and contact details.</p>
+            </div>
+            <div class="step-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <i class="fa-solid fa-flask step-icon"></i>
+                <h3>Enter Soil Data</h3>
+                <p>Input your soil nutrients, location, and weather conditions.</p>
+            </div>
+            <div class="step-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <i class="fa-solid fa-brain step-icon"></i>
+                <h3>Get AI Advice</h3>
+                <p>Our AI recommends the best crops and management strategies.</p>
+            </div>
+            <div class="step-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-card">
+                <div class="step-num">04</div>
+                <i class="fa-solid fa-tractor step-icon"></i>
+                <h3>Farm Smart</h3>
+                <p>Monitor diseases, weather, and profit — all from your phone.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-card glass-panel">
+            <i class="fa-solid fa-leaf cta-icon"></i>
+            <h2>Start Smart Farming Today</h2>
+            <p>Join farmers who use AI to grow better crops with less risk and more profit.</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-rocket"></i> Create Free Account
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Contact -->
+<section class="landing-section bg-alt" id="contact">
+    <div class="container">
+        <div class="section-header">
+            <h2>Contact & Support</h2>
+            <div class="header-line"></div>
+        </div>
+        <div class="contact-grid">
+            <div class="contact-item glass-panel">
+                <i class="fa-solid fa-phone"></i>
+                <h4>Helpline</h4>
+                <p>1800-180-1551 (Kisan Call Centre)</p>
+            </div>
+            <div class="contact-item glass-panel">
+                <i class="fa-solid fa-envelope"></i>
+                <h4>Email Support</h4>
+                <p>support@smartcrop.in</p>
+            </div>
+            <div class="contact-item glass-panel">
+                <i class="fa-solid fa-location-dot"></i>
+                <h4>Coverage</h4>
+                <p>Tamil Nadu, India — All Districts</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

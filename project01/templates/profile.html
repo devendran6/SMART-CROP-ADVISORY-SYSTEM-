@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}My Farm Diary - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="dashboard-header">
+        <div class="title-section">
+            <h1>🚜 My Farm Diary</h1>
+            <p>Manage your personal crop logs and disease reports</p>
+        </div>
+        <div style="display:flex;gap:1rem">
+            <button class="btn btn-primary" onclick="toggleModal('addCropModal')">
+                <i class="fa-solid fa-plus"></i> Add Crop Entry
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                <i class="fa-solid fa-chart-pie"></i> Regional View
+            </a>
+        </div>
+    </div>
+
+    <!-- Profile Stats -->
+    <div class="stats-grid" style="margin-bottom:2rem">
+        <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class="fa-solid fa-wheat-awn"></i></div>
+            <div class="stat-details"><h3>My Crops</h3><p class="stat-number">{{ crops|length }}</p></div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon" style="color:var(--warning)"><i class="fa-solid fa-tractor"></i></div>
+            <div class="stat-details"><h3>Active Growing</h3><p class="stat-number">{{ crops|selectattr('status','equalto','Growing')|list|length }}</p></div>
+        </div>
+        <div class="stat-card glass-panel">
+            <div class="stat-icon" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="stat-details"><h3>My Alerts</h3><p class="stat-number" style="color:var(--danger)">{{ alerts|length }}</p></div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-actions glass-panel" style="margin-bottom:2rem;padding:1.5rem 2rem">
+        <h3 style="margin-bottom:1rem"><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> AI Tools</h3>
+        <div class="action-grid">
+            <a href="{{ url_for('crop_recommendation') }}" class="action-btn"><i class="fa-solid fa-seedling"></i><span>Crop Recommender</span></a>
+            <a href="{{ url_for('disease_detection') }}" class="action-btn"><i class="fa-solid fa-microscope"></i><span>Detect Disease</span></a>
+            <a href="{{ url_for('yield_profit') }}" class="action-btn"><i class="fa-solid fa-chart-line"></i><span>Predict Profit</span></a>
+            <a href="{{ url_for('weather_page') }}" class="action-btn"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></a>
+            <a href="{{ url_for('alerts_page') }}" class="action-btn alert-btn"><i class="fa-solid fa-bell"></i><span>Alerts</span></a>
+        </div>
+    </div>
+
+    <!-- Crop Diary -->
+    <div class="glass-panel" style="padding:0;margin-bottom:2rem">
+        <div class="table-header" style="border-radius:20px 20px 0 0">
+            <h2><i class="fa-solid fa-book-open" style="color:var(--primary)"></i> Crop Diary</h2>
+        </div>
+        {% if crops %}
+        <div class="diary-timeline" style="padding:2rem">
+            {% for crop in crops %}
+            <div class="diary-entry glass-panel">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <div class="avatar">{{ crop.crop_name[0]|upper }}</div>
+                        <div>
+                            <h3>{{ crop.crop_name }}</h3>
+                            <span class="status-indicator status-{{ crop.status|lower|replace(' ','-') }}">{{ crop.status }}</span>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_crop', id=crop.id) }}" onsubmit="return confirm('Delete this entry?')">
+                        <button type="submit" class="btn-icon text-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </form>
+                </div>
+                <div class="entry-body">
+                    <div class="entry-data"><i class="fa-solid fa-calendar"></i> <strong>Planted:</strong> {{ crop.planted_date or 'N/A' }}</div>
+                    <div class="entry-data"><i class="fa-solid fa-map"></i> <strong>Area:</strong> {{ crop.area_size or 'N/A' }}</div>
+                    <div class="entry-data"><i class="fa-solid fa-mountain"></i> <strong>Soil:</strong> {{ crop.soil_type or 'N/A' }}</div>
+                    <div class="entry-data"><i class="fa-solid fa-shield-halved"></i> <strong>Protection:</strong> {{ crop.protection_strategy }}</div>
+                    <div class="entry-data"><i class="fa-solid fa-weight-scale"></i> <strong>Yield Info:</strong> {{ crop.quantity_info or 'N/A' }}</div>
+                </div>
+                <div class="entry-footer">Added on {{ crop.created_at[:10] if crop.created_at else 'N/A' }}</div>
+                <div style="margin-top:1rem;display:flex;gap:0.8rem">
+                    <a href="/yield-profit?crop={{ crop.crop_name }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-chart-line"></i> Profit Estimate</a>
+                    <a href="/disease-detection?crop={{ crop.crop_name }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-microscope"></i> Check Disease</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-seedling"></i><p>No crops added yet. Click "Add Crop Entry" to start your farm diary!</p></div>
+        {% endif %}
+    </div>
+
+    <!-- My Alerts -->
+    {% if alerts %}
+    <div class="glass-panel" style="padding:0">
+        <div class="table-header" style="border-radius:20px 20px 0 0;background:rgba(255,82,82,0.05)">
+            <h2><i class="fa-solid fa-bell" style="color:var(--danger)"></i> My Reported Alerts</h2>
+        </div>
+        <div style="overflow-x:auto;padding:1rem">
+        <table class="data-table">
+            <thead><tr><th>District</th><th>Crop</th><th>Disease</th><th>Severity</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for a in alerts %}
+            <tr>
+                <td><span class="badge locality-badge"><i class="fa-solid fa-location-dot"></i> {{ a.district }}</span></td>
+                <td class="font-semibold">{{ a.crop_name }}</td>
+                <td>{{ a.disease_name }}</td>
+                <td><span class="status-indicator status-{{ a.severity|lower }}">{{ a.severity }}</span></td>
+                <td style="color:var(--text-muted);font-size:0.85rem">{{ a.reported_at[:10] if a.reported_at else 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Crop Modal -->
+<div id="addCropModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <span class="close-btn" onclick="toggleModal('addCropModal')">&times;</span>
+        <h2><i class="fa-solid fa-seedling" style="color:var(--primary)"></i> Add Crop Entry</h2>
+        <p class="modal-subtitle">Log a new crop to your farm diary</p>
+        <form method="POST" action="{{ url_for('add_crop') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Crop Name *</label>
+                    <input type="text" name="crop_name" placeholder="e.g. Rice, Tomato" required>
+                </div>
+                <div class="form-group">
+                    <label>Planted Date</label>
+                    <input type="date" name="planted_date">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Area Size</label>
+                    <input type="text" name="area_size" placeholder="e.g. 2.5 Acres">
+                </div>
+                <div class="form-group">
+                    <label>Soil Type</label>
+                    <select name="soil_type">
+                        <option>Loamy</option><option>Clayey</option><option>Sandy Loam</option>
+                        <option>Black</option><option>Red</option><option>Alluvial</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Status *</label>
+                    <select name="status" required>
+                        <option>Planned</option><option>Planted</option><option>Growing</option>
+                        <option>Harvesting Soon</option><option>Available</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Protection Strategy</label>
+                    <input type="text" name="protection_strategy" value="None" placeholder="e.g. Pesticide, Organic">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Yield / Quantity Info</label>
+                <input type="text" name="quantity_info" placeholder="e.g. Expected 20 quintals">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="toggleModal('addCropModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add to Diary</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

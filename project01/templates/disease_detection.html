@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block title %}Disease Detection - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="page-header">
+        <div class="hero-badge"><i class="fa-solid fa-microscope"></i> AI Module</div>
+        <h1>🔬 Crop Disease Detection</h1>
+        <p>Upload a photo of affected plant leaves. AI analyzes the image to identify diseases and recommend treatments.</p>
+    </div>
+
+    <div class="detect-layout">
+        <!-- Upload Panel -->
+        <div class="detect-upload glass-panel">
+            <h2><i class="fa-solid fa-camera" style="color:var(--primary)"></i> Upload Plant Image</h2>
+            <p style="color:var(--text-muted);margin-bottom:1.5rem">Take a clear photo of the affected leaf, stem, or fruit.</p>
+
+            <div class="form-group">
+                <label>Select Crop Type</label>
+                <select id="d_crop">
+                    {% for crop in crop_list %}<option value="{{ crop }}" {% if request.args.get('crop')==crop %}selected{% endif %}>{{ crop }}</option>{% endfor %}
+                    <option value="General">General / Unknown</option>
+                </select>
+            </div>
+
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('imgInput').click()">
+                <i class="fa-solid fa-cloud-upload-alt upload-icon"></i>
+                <h3>Click or Drag & Drop</h3>
+                <p>Supported: JPG, PNG, WEBP (max 5MB)</p>
+            </div>
+            <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="previewImage(event)">
+
+            <div id="imgPreviewArea" style="display:none;margin-top:1.5rem">
+                <img id="imgPreview" style="width:100%;max-height:300px;object-fit:contain;border-radius:12px;border:2px solid var(--primary)">
+                <button class="btn btn-primary btn-block" style="margin-top:1rem" onclick="analyzeDisease()">
+                    <i class="fa-solid fa-brain"></i> Analyze Disease
+                </button>
+            </div>
+
+            <div id="detectLoading" style="display:none;text-align:center;padding:2rem">
+                <div class="spinner"></div>
+                <p style="margin-top:1rem;color:var(--text-muted)">Analyzing image with AI...</p>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="detect-results">
+            <div id="detectPlaceholder" class="glass-panel placeholder-box">
+                <i class="fa-solid fa-microscope placeholder-icon"></i>
+                <h3>Upload a Plant Image</h3>
+                <p>Our AI model will analyze the image and detect possible diseases in your crop.</p>
+                <div class="tip-list">
+                    <div class="tip"><i class="fa-solid fa-check"></i> Take photo in good natural light</div>
+                    <div class="tip"><i class="fa-solid fa-check"></i> Focus on the affected area</div>
+                    <div class="tip"><i class="fa-solid fa-check"></i> Include both healthy and sick leaves</div>
+                    <div class="tip"><i class="fa-solid fa-check"></i> Avoid shadows and blurring</div>
+                </div>
+            </div>
+
+            <div id="detectResult" style="display:none">
+                <div id="diseaseCard"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Known Diseases Reference -->
+    <div class="glass-panel" style="margin-top:2rem;padding:2rem">
+        <h2 style="margin-bottom:1.5rem"><i class="fa-solid fa-book" style="color:var(--info)"></i> Disease Reference Library</h2>
+        <div id="cropSelect" style="margin-bottom:1.5rem">
+            <select onchange="showDiseaseRef(this.value)" class="form-control">
+                <option value="">-- Select a crop to view known diseases --</option>
+                {% for crop in crop_list %}<option>{{ crop }}</option>{% endfor %}
+            </select>
+        </div>
+        <div id="diseaseRefList"></div>
+    </div>
+</div>
+
+<script>
+let currentImageBase64 = null;
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentImageBase64 = e.target.result;
+        document.getElementById('imgPreview').src = currentImageBase64;
+        document.getElementById('imgPreviewArea').style.display = 'block';
+        document.getElementById('uploadArea').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Drag & drop
+const ua = document.getElementById('uploadArea');
+ua.addEventListener('dragover', e => { e.preventDefault(); ua.classList.add('dragover'); });
+ua.addEventListener('dragleave', () => ua.classList.remove('dragover'));
+ua.addEventListener('drop', e => {
+    e.preventDefault(); ua.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) { document.getElementById('imgInput').files = e.dataTransfer.files; previewImage({target:{files:[file]}}); }
+});
+
+async function analyzeDisease() {
+    if (!currentImageBase64) return;
+    document.getElementById('detectPlaceholder').style.display = 'none';
+    document.getElementById('detectResult').style.display = 'none';
+    document.getElementById('detectLoading').style.display = 'block';
+
+    const crop = document.getElementById('d_crop').value;
+    const res = await fetch('/api/detect-disease', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({image: currentImageBase64, crop: crop})
+    });
+    const result = await res.json();
+    document.getElementById('detectLoading').style.display = 'none';
+
+    const d = result.disease;
+    const conf = result.confidence;
+    const isHealthy = d.name === 'Healthy Plant';
+    const sevColor = {High:'var(--danger)',Medium:'var(--warning)',Low:'var(--success)',None:'var(--primary)'}[d.severity] || 'var(--primary)';
+
+    document.getElementById('diseaseCard').innerHTML = `
+        <div class="glass-panel" style="padding:2rem;border-left:4px solid ${sevColor}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+                <div>
+                    <div style="font-size:2rem">${isHealthy ? '✅' : '🦠'}</div>
+                    <h2 style="color:${sevColor};margin:0.5rem 0">${d.name}</h2>
+                    <p style="color:var(--text-muted)">${d.desc}</p>
+                </div>
+                <div style="text-align:center;background:rgba(0,0,0,0.2);padding:1rem 1.5rem;border-radius:12px">
+                    <div style="font-size:2rem;font-weight:800;color:${sevColor}">${conf}%</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted)">AI Confidence</div>
+                </div>
+            </div>
+            ${!isHealthy ? `
+            <div class="disease-info-grid">
+                <div class="disease-section" style="background:rgba(255,82,82,0.08);border:1px solid rgba(255,82,82,0.2);border-radius:12px;padding:1.5rem">
+                    <h4 style="color:var(--danger);margin-bottom:0.8rem"><i class="fa-solid fa-syringe"></i> Treatment</h4>
+                    <p>${d.treatment}</p>
+                </div>
+                <div class="disease-section" style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:12px;padding:1.5rem">
+                    <h4 style="color:var(--primary);margin-bottom:0.8rem"><i class="fa-solid fa-shield-halved"></i> Prevention</h4>
+                    <p>${d.prevention}</p>
+                </div>
+            </div>
+            <div style="margin-top:1rem;display:flex;gap:0.8rem;flex-wrap:wrap">
+                <button onclick="reportAlert('${crop}','${d.name}','${d.severity}')" class="btn btn-danger-outline btn-sm">
+                    <i class="fa-solid fa-bell"></i> Report to District Farmers
+                </button>
+            </div>` : '<div style="color:var(--primary);font-weight:600"><i class="fa-solid fa-leaf"></i> Your plant appears healthy! Continue regular management.</div>'}
+        </div>`;
+    document.getElementById('detectResult').style.display = 'block';
+}
+
+async function reportAlert(crop, disease, severity) {
+    const district = prompt('Enter your district name to alert nearby farmers:');
+    if (!district) return;
+    await fetch('/api/report-alert', {
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({crop,disease,severity,district})
+    });
+    alert('✅ Alert reported! Nearby farmers in ' + district + ' will be notified.');
+}
+
+async function showDiseaseRef(crop) {
+    if (!crop) { document.getElementById('diseaseRefList').innerHTML = ''; return; }
+    const res = await fetch('/api/detect-disease', {
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({image:'data:image/png;base64,iVBORw0KGgo=',crop})
+    });
+    // Show static reference from knowledge base via inline data
+    const diseases = {
+        'Rice': [['Rice Blast','Fungal – diamond lesions','Tricyclazole 75WP @ 6g/10L','Resistant varieties'],['Bacterial Blight','Yellow margins','Copper Oxychloride 50WP','Certified seeds']],
+        'Wheat': [['Yellow Rust','Yellow stripes','Propiconazole 25EC','Resistant varieties'],['Powdery Mildew','White powder','Sulphur 80WP','Crop spacing']],
+        'Tomato': [['Early Blight','Brown rings','Mancozeb 75WP every 7d','Crop rotation'],['Late Blight','Water-soaked patches','Metalaxyl-M 8WP','Resistant varieties']],
+        'Cotton': [['Leaf Curl','Upward curl','Imidacloprid for whitefly','Remove weed hosts'],['Fusarium Wilt','Yellowing wilting','Carbendazim drench','Soil solarization']],
+    };
+    const list = diseases[crop] || [['No specific disease data','Check your crop regularly','Contact local agricultural office','Use certified seeds']];
+    let html = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">`;
+    list.forEach(([name,desc,treatment,prevention]) => {
+        html += `<div class="glass-panel" style="padding:1.2rem;border-left:3px solid var(--warning)">
+            <h4 style="color:var(--warning);margin-bottom:0.5rem">${name}</h4>
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem">${desc}</p>
+            <div style="font-size:0.85rem"><strong>Treat:</strong> ${treatment}</div>
+            <div style="font-size:0.85rem"><strong>Prevent:</strong> ${prevention}</div>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('diseaseRefList').innerHTML = html;
+}
+</script>
+{% endblock %}

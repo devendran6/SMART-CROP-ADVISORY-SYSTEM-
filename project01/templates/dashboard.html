@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Smart Crop Advisory{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem">
+<div class="dashboard-header">
+    <div class="title-section">
+        <h1>🌾 Regional Crop Dashboard</h1>
+        <p>Real-time agricultural intelligence for your region</p>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <a href="{{ url_for('profile') }}" class="btn btn-outline"><i class="fa-solid fa-address-book"></i> My Farm Diary</a>
+        <a href="{{ url_for('crop_recommendation') }}" class="btn btn-primary"><i class="fa-solid fa-seedling"></i> Get Crop Advice</a>
+    </div>
+</div>
+
+<!-- Weather Banner -->
+<div class="weather-banner glass-panel" style="margin-bottom:2rem;padding:1.5rem 2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap">
+    <div style="font-size:3rem"><i class="fa-solid fa-cloud-sun" style="color:var(--warning)"></i></div>
+    <div>
+        <div style="font-size:1.1rem;color:var(--text-muted);font-weight:600">📍 {{ weather.location }}</div>
+        <div style="font-size:2rem;font-weight:800">{{ weather.temp }}°C</div>
+        <div style="color:var(--text-muted)">{{ weather.forecast }}</div>
+    </div>
+    <div style="display:flex;gap:2rem;margin-left:auto;flex-wrap:wrap">
+        <div style="text-align:center"><div style="font-size:1.5rem;font-weight:700;color:var(--info)">{{ weather.humidity }}%</div><div style="font-size:0.85rem;color:var(--text-muted)">Humidity</div></div>
+        <div style="text-align:center"><div style="font-size:1.5rem;font-weight:700;color:var(--primary)">{{ weather.rainfall }}mm</div><div style="font-size:0.85rem;color:var(--text-muted)">Rainfall</div></div>
+    </div>
+    <a href="{{ url_for('weather_page') }}" class="btn btn-outline" style="margin-left:auto"><i class="fa-solid fa-cloud-sun"></i> Full Weather</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-bottom:2rem">
+    <div class="stat-card glass-panel">
+        <div class="stat-icon"><i class="fa-solid fa-tractor"></i></div>
+        <div class="stat-details"><h3>Total Farmers</h3><p class="stat-number">{{ crops|map(attribute='farmer_uid')|unique|list|length }}</p></div>
+    </div>
+    <div class="stat-card glass-panel">
+        <div class="stat-icon"><i class="fa-solid fa-wheat-awn"></i></div>
+        <div class="stat-details"><h3>Active Crops</h3><p class="stat-number">{{ crops|length }}</p></div>
+    </div>
+    <div class="stat-card glass-panel">
+        <div class="stat-icon" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-details"><h3>Disease Alerts</h3><p class="stat-number" style="color:var(--danger)">{{ alerts|length }}</p></div>
+    </div>
+    <div class="stat-card glass-panel">
+        <div class="stat-icon" style="color:var(--warning)"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="stat-details"><h3>Protected</h3><p class="stat-number">{{ crops|rejectattr('protection_strategy','equalto','None')|list|length }}</p></div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions glass-panel" style="margin-bottom:2rem;padding:1.5rem 2rem">
+    <h3 style="margin-bottom:1rem;font-size:1.2rem"><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Quick Actions</h3>
+    <div class="action-grid">
+        <a href="{{ url_for('crop_recommendation') }}" class="action-btn">
+            <i class="fa-solid fa-seedling"></i><span>Crop Recommender</span>
+        </a>
+        <a href="{{ url_for('disease_detection') }}" class="action-btn">
+            <i class="fa-solid fa-microscope"></i><span>Detect Disease</span>
+        </a>
+        <a href="{{ url_for('yield_profit') }}" class="action-btn">
+            <i class="fa-solid fa-chart-line"></i><span>Predict Profit</span>
+        </a>
+        <a href="{{ url_for('weather_page') }}" class="action-btn">
+            <i class="fa-solid fa-cloud-sun"></i><span>Irrigation Guide</span>
+        </a>
+        <a href="{{ url_for('alerts_page') }}" class="action-btn alert-btn">
+            <i class="fa-solid fa-bell"></i><span>View Alerts</span>
+        </a>
+    </div>
+</div>
+
+<!-- Disease Alerts -->
+{% if alerts %}
+<div class="table-container glass-panel" style="margin-bottom:2rem">
+    <div class="table-header" style="background:rgba(255,82,82,0.05)">
+        <h2><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Recent Disease Alerts</h2>
+        <a href="{{ url_for('alerts_page') }}" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="data-table">
+        <thead><tr><th>District</th><th>Crop</th><th>Disease</th><th>Severity</th><th>Reported By</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for a in alerts[:5] %}
+        <tr>
+            <td><span class="badge locality-badge"><i class="fa-solid fa-location-dot"></i> {{ a.district }}</span></td>
+            <td class="font-semibold">{{ a.crop_name }}</td>
+            <td>{{ a.disease_name }}</td>
+            <td><span class="status-indicator status-{{ a.severity|lower }}">{{ a.severity }}</span></td>
+            <td>{{ a.username }}</td>
+            <td style="color:var(--text-muted);font-size:0.85rem">{{ a.reported_at[:10] if a.reported_at else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Crop Table -->
+<div class="table-container glass-panel">
+    <div class="table-header">
+        <h2>Regional Cultivation Overview</h2>
+        <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="tableSearch" placeholder="Search farmer, crop, location...">
+        </div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="data-table" id="cropsTable">
+        <thead><tr><th>Farmer</th><th>Location</th><th>Crop</th><th>Soil</th><th>Planted</th><th>Area</th><th>Status</th><th>Protection</th><th>Yield Info</th></tr></thead>
+        <tbody>
+        {% for crop in crops %}
+        <tr class="{% if crop.farmer_uid == current_user_id %}my-row{% endif %}">
+            <td>
+                <div class="farmer-info">
+                    <div class="avatar">{{ crop.username[0]|upper }}</div>
+                    <div class="details">
+                        <span class="name">{{ crop.username }}</span>
+                        <span class="contact">{{ crop.contact }}</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="badge locality-badge"><i class="fa-solid fa-location-dot"></i> {{ crop.location }}</span></td>
+            <td class="font-semibold">{{ crop.crop_name }}</td>
+            <td style="color:var(--text-muted)">{{ crop.soil_type or 'N/A' }}</td>
+            <td>{{ crop.planted_date or 'N/A' }}</td>
+            <td>{{ crop.area_size or 'N/A' }}</td>
+            <td><span class="status-indicator status-{{ crop.status|lower|replace(' ','-') }}">{{ crop.status }}</span></td>
+            <td>{{ crop.protection_strategy or 'None' }}</td>
+            <td>{{ crop.quantity_info or 'N/A' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="empty-state"><i class="fa-solid fa-seedling"></i><p>No crops logged yet. Add your first crop in My Farm Diary!</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+</div>
+{% endblock %}

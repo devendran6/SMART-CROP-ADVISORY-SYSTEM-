@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Yield & Profit Prediction - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="page-header">
+        <div class="hero-badge"><i class="fa-solid fa-chart-line"></i> AI Module</div>
+        <h1>💰 Yield & Profit Predictor</h1>
+        <p>Estimate your expected harvest, cultivation costs, and net profit before you plant. Compare crops to make the smartest decision.</p>
+    </div>
+
+    <div class="predict-layout">
+        <!-- Input -->
+        <div class="predict-form glass-panel">
+            <h2><i class="fa-solid fa-sliders" style="color:var(--primary)"></i> Crop Parameters</h2>
+            <p style="color:var(--text-muted);margin-bottom:1.5rem">Enter your farming details for an accurate estimate</p>
+
+            <div class="form-group">
+                <label>Crop Name</label>
+                <select id="p_crop">
+                    {% for crop in crop_list %}<option {% if request.args.get('crop')==crop %}selected{% endif %}>{{ crop }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Land Area (Acres)</label>
+                    <input type="number" id="p_area" value="1" min="0.1" max="500" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Soil Type</label>
+                    <select id="p_soil">
+                        <option>Loamy</option><option>Clayey</option><option>Sandy Loam</option>
+                        <option>Black</option><option>Red</option><option>Alluvial</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Irrigation Quality</label>
+                <select id="p_irrigation">
+                    <option>Excellent</option><option selected>Good</option>
+                    <option>Average</option><option>Poor</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="predictProfit()">
+                <i class="fa-solid fa-calculator"></i> Calculate Profit Estimate
+            </button>
+
+            <!-- Compare Multiple Crops -->
+            <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--glass-border)">
+                <h4 style="margin-bottom:1rem"><i class="fa-solid fa-scale-balanced" style="color:var(--info)"></i> Compare All Crops</h4>
+                <button class="btn btn-outline btn-block" onclick="compareAllCrops()">
+                    <i class="fa-solid fa-table"></i> Show Full Comparison Table
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="predict-results">
+            <div id="profitPlaceholder" class="glass-panel placeholder-box">
+                <i class="fa-solid fa-chart-line placeholder-icon"></i>
+                <h3>Ready to Calculate</h3>
+                <p>Enter your crop and area details, then click "Calculate" to see estimated yield, costs, and profit.</p>
+            </div>
+            <div id="profitLoading" style="display:none;text-align:center;padding:3rem" class="glass-panel">
+                <div class="spinner"></div><p style="margin-top:1rem">Calculating...</p>
+            </div>
+            <div id="profitResult" style="display:none"></div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div id="compareSection" style="display:none;margin-top:2rem">
+        <div class="glass-panel">
+            <div class="table-header">
+                <h2><i class="fa-solid fa-table" style="color:var(--info)"></i> Crop Comparison (1 Acre)</h2>
+                <button onclick="document.getElementById('compareSection').style.display='none'" class="btn btn-outline btn-sm">Close</button>
+            </div>
+            <div style="overflow-x:auto">
+            <table class="data-table" id="compareTable">
+                <thead><tr><th>Crop</th><th>Season</th><th>Yield (Q/Acre)</th><th>Market Price (₹/Q)</th><th>Gross Income</th><th>Cost/Acre</th><th>Net Profit</th><th>ROI %</th></tr></thead>
+                <tbody id="compareBody"></tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const crops = {{ crop_list|tojson }};
+
+async function predictProfit() {
+    document.getElementById('profitPlaceholder').style.display='none';
+    document.getElementById('profitResult').style.display='none';
+    document.getElementById('profitLoading').style.display='block';
+    const data = {
+        crop: document.getElementById('p_crop').value,
+        area: document.getElementById('p_area').value,
+        soil: document.getElementById('p_soil').value,
+        irrigation: document.getElementById('p_irrigation').value,
+    };
+    const res = await fetch('/api/predict-profit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const r = await res.json();
+    document.getElementById('profitLoading').style.display='none';
+    const profit_color = r.net_profit >= 0 ? 'var(--primary)' : 'var(--danger)';
+    const roi_color = r.roi_percent >= 0 ? 'var(--primary)' : 'var(--danger)';
+    document.getElementById('profitResult').innerHTML = `
+    <div class="glass-panel" style="padding:2rem;border-left:4px solid var(--primary)">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+            <div>
+                <h2 style="margin:0">${r.crop} — ${r.area} Acre${r.area>1?'s':''}</h2>
+                <span style="color:var(--text-muted)">Season: ${r.season}</span>
+            </div>
+            <div style="background:rgba(0,230,118,0.1);border:1px solid var(--primary);padding:1rem 2rem;border-radius:12px;text-align:center">
+                <div style="font-size:0.85rem;color:var(--text-muted)">Estimated Net Profit</div>
+                <div style="font-size:2.2rem;font-weight:800;color:${profit_color}">₹${r.net_profit.toLocaleString('en-IN')}</div>
+                <div style="font-size:0.85rem;color:${roi_color}">ROI: ${r.roi_percent}%</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">
+            <div class="profit-metric"><div class="pm-label">🌾 Estimated Yield</div><div class="pm-value">${r.estimated_yield_quintals} Quintals</div></div>
+            <div class="profit-metric"><div class="pm-label">📈 Market Price</div><div class="pm-value">₹${r.price_per_quintal.toLocaleString('en-IN')}/Q</div></div>
+            <div class="profit-metric"><div class="pm-label">💵 Gross Income</div><div class="pm-value">₹${r.gross_income.toLocaleString('en-IN')}</div></div>
+            <div class="profit-metric"><div class="pm-label">💸 Cultivation Cost</div><div class="pm-value">₹${r.cultivation_cost.toLocaleString('en-IN')}</div></div>
+            <div class="profit-metric"><div class="pm-label">⚖️ Break-even Yield</div><div class="pm-value">${r.break_even_yield} Quintals</div></div>
+        </div>
+        <div style="margin-top:1.5rem;padding:1rem;background:rgba(0,0,0,0.2);border-radius:8px;color:var(--text-muted);font-size:0.9rem">
+            <i class="fa-solid fa-info-circle" style="color:var(--info)"></i> 
+            These are estimates based on average market prices and regional yield data. Actual results may vary based on weather, input costs, and market fluctuations.
+        </div>
+    </div>`;
+    document.getElementById('profitResult').style.display='block';
+}
+
+async function compareAllCrops() {
+    const area = document.getElementById('p_area').value;
+    const soil = document.getElementById('p_soil').value;
+    const irr  = document.getElementById('p_irrigation').value;
+    let rows = '';
+    for (const crop of crops) {
+        const res = await fetch('/api/predict-profit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({crop,area,soil,irrigation:irr})});
+        const r = await res.json();
+        if (!r.net_profit) continue;
+        const c = r.net_profit>=0?'var(--primary)':'var(--danger)';
+        rows += `<tr>
+            <td class="font-semibold">${r.crop}</td>
+            <td><span class="badge" style="background:rgba(64,196,255,0.1);color:var(--info);border:1px solid rgba(64,196,255,0.3)">${r.season}</span></td>
+            <td>${r.estimated_yield_quintals}</td>
+            <td>₹${r.price_per_quintal.toLocaleString('en-IN')}</td>
+            <td>₹${r.gross_income.toLocaleString('en-IN')}</td>
+            <td>₹${r.cultivation_cost.toLocaleString('en-IN')}</td>
+            <td style="color:${c};font-weight:700">₹${r.net_profit.toLocaleString('en-IN')}</td>
+            <td style="color:${c};font-weight:700">${r.roi_percent}%</td>
+        </tr>`;
+    }
+    document.getElementById('compareBody').innerHTML = rows;
+    document.getElementById('compareSection').style.display='block';
+    document.getElementById('compareSection').scrollIntoView({behavior:'smooth'});
+}
+</script>
+{% endblock %}

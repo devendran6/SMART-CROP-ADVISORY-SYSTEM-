@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Weather & Irrigation - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="page-header">
+        <div class="hero-badge"><i class="fa-solid fa-cloud-sun"></i> Live Weather</div>
+        <h1>🌤️ Weather & Irrigation Guide</h1>
+        <p>Real-time weather conditions and crop-specific irrigation scheduling for your region.</p>
+    </div>
+
+    <!-- Current Weather Hero -->
+    <div class="weather-hero glass-panel">
+        <div class="weather-main">
+            <div class="weather-temp-block">
+                <div style="font-size:5rem">
+                    {% if weather.temp >= 35 %}🌡️{% elif weather.temp >= 25 %}☀️{% else %}🌤️{% endif %}
+                </div>
+                <div>
+                    <div style="font-size:3.5rem;font-weight:800;line-height:1">{{ weather.temp }}°C</div>
+                    <div style="color:var(--text-muted);font-size:1.1rem">📍 {{ weather.location }}</div>
+                    <div style="color:var(--text-main);margin-top:0.5rem">{{ weather.forecast }}</div>
+                </div>
+            </div>
+            <div class="weather-stats-row">
+                <div class="w-stat">
+                    <i class="fa-solid fa-droplet" style="color:var(--info)"></i>
+                    <div><div style="font-size:1.8rem;font-weight:700;color:var(--info)">{{ weather.humidity }}%</div><div style="color:var(--text-muted)">Humidity</div></div>
+                </div>
+                <div class="w-stat">
+                    <i class="fa-solid fa-cloud-rain" style="color:#80d8ff"></i>
+                    <div><div style="font-size:1.8rem;font-weight:700;color:#80d8ff">{{ weather.rainfall }}mm</div><div style="color:var(--text-muted)">Rainfall</div></div>
+                </div>
+                <div class="w-stat">
+                    <i class="fa-solid fa-sun" style="color:var(--warning)"></i>
+                    <div><div style="font-size:1.8rem;font-weight:700;color:var(--warning)">{% if weather.temp >= 35 %}High{% elif weather.temp >= 28 %}Moderate{% else %}Low{% endif %}</div><div style="color:var(--text-muted)">Heat Stress</div></div>
+                </div>
+                <div class="w-stat">
+                    <i class="fa-solid fa-water" style="color:var(--primary)"></i>
+                    <div><div style="font-size:1.8rem;font-weight:700;color:var(--primary)">{% if weather.rainfall < 70 %}High{% elif weather.rainfall < 120 %}Medium{% else %}Low{% endif %}</div><div style="color:var(--text-muted)">Water Need</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Irrigation Advisor -->
+    <div class="irrigation-section" style="margin-top:2rem">
+        <div class="glass-panel" style="padding:2rem">
+            <h2 style="margin-bottom:0.5rem"><i class="fa-solid fa-faucet" style="color:var(--info)"></i> Crop Irrigation Advisor</h2>
+            <p style="color:var(--text-muted);margin-bottom:1.5rem">Select your crop to get tailored irrigation schedule and water management tips.</p>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+                <select id="irr_crop" style="flex:1;min-width:200px">
+                    {% for c in irrigation_crops %}<option>{{ c }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-primary" onclick="getIrrigationAdvice()">
+                    <i class="fa-solid fa-droplet"></i> Get Irrigation Guide
+                </button>
+            </div>
+            <div id="irrResult" style="display:none;margin-top:1.5rem"></div>
+        </div>
+    </div>
+
+    <!-- Regional Weather Grid -->
+    <div style="margin-top:2rem">
+        <h2 style="margin-bottom:1.5rem"><i class="fa-solid fa-map-location-dot" style="color:var(--primary)"></i> Tamil Nadu Districts Weather</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem">
+            {% for w in all_weather %}
+            <div class="weather-card glass-panel">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                        <div style="font-weight:700;font-size:1.1rem">{{ w.location }}</div>
+                        <div style="font-size:2rem;font-weight:800;color:{% if w.temp>=35 %}var(--danger){% elif w.temp>=28 %}var(--warning){% else %}var(--primary){% endif %}">{{ w.temp }}°C</div>
+                    </div>
+                    <div style="font-size:2rem">
+                        {% if w.temp >= 35 %}🌡️{% elif w.temp >= 28 %}☀️{% else %}🌤️{% endif %}
+                    </div>
+                </div>
+                <div style="display:flex;gap:1.5rem;margin-top:0.8rem">
+                    <span style="color:var(--info);font-size:0.9rem"><i class="fa-solid fa-droplet"></i> {{ w.humidity }}%</span>
+                    <span style="color:#80d8ff;font-size:0.9rem"><i class="fa-solid fa-cloud-rain"></i> {{ w.rainfall }}mm</span>
+                </div>
+                <div style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem">{{ w.forecast }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Advisory Tips -->
+    <div class="glass-panel" style="margin-top:2rem;padding:2rem">
+        <h2 style="margin-bottom:1.5rem"><i class="fa-solid fa-lightbulb" style="color:var(--warning)"></i> General Weather Advisory</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+            <div style="padding:1.2rem;background:rgba(0,230,118,0.06);border-radius:12px;border-left:3px solid var(--primary)">
+                <h4 style="color:var(--primary);margin-bottom:0.5rem">🌿 Temperature Management</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem">Above 35°C causes heat stress in most crops. Use shade nets, increase irrigation frequency, and apply mulch to keep soil temperature low.</p>
+            </div>
+            <div style="padding:1.2rem;background:rgba(64,196,255,0.06);border-radius:12px;border-left:3px solid var(--info)">
+                <h4 style="color:var(--info);margin-bottom:0.5rem">💧 Water Conservation</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem">Switch to drip irrigation to save 30-50% water. Irrigate in early morning or evening to reduce evaporation losses.</p>
+            </div>
+            <div style="padding:1.2rem;background:rgba(255,215,64,0.06);border-radius:12px;border-left:3px solid var(--warning)">
+                <h4 style="color:var(--warning);margin-bottom:0.5rem">⚡ Monsoon Preparedness</h4>
+                <p style="color:var(--text-muted);font-size:0.9rem">Clean field drainage channels before monsoon. Avoid spraying pesticides before rain. Store harvested produce safely.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function getIrrigationAdvice() {
+    const crop = document.getElementById('irr_crop').value;
+    const res = await fetch('/api/irrigation-advice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({crop})});
+    const r = await res.json();
+    const needColor = r.water_need==='High'?'var(--danger)':r.water_need==='Medium'?'var(--warning)':'var(--primary)';
+    document.getElementById('irrResult').innerHTML = `
+        <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:1.5rem;border-left:4px solid var(--info)">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+                <h3 style="margin:0"><i class="fa-solid fa-wheat-awn" style="color:var(--primary)"></i> ${crop} Irrigation Schedule</h3>
+                <span style="color:${needColor};font-weight:700;background:rgba(0,0,0,0.2);padding:0.4rem 1rem;border-radius:20px;border:1px solid ${needColor}">
+                    Water Need: ${r.water_need}
+                </span>
+            </div>
+            <p style="color:var(--text-main);line-height:1.7">${r.advice}</p>
+            <div style="margin-top:1rem;padding:0.8rem;background:rgba(64,196,255,0.08);border-radius:8px;font-size:0.9rem">
+                <i class="fa-solid fa-cloud-sun" style="color:var(--info)"></i>
+                Current weather: ${r.weather.temp}°C, ${r.weather.humidity}% humidity, ${r.weather.rainfall}mm rainfall — ${r.weather.forecast}
+            </div>
+        </div>`;
+    document.getElementById('irrResult').style.display='block';
+}
+</script>
+{% endblock %}

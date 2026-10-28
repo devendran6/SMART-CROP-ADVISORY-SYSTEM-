@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Disease Alerts - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="page-header">
+        <div class="hero-badge"><i class="fa-solid fa-bell"></i> Alert System</div>
+        <h1>🚨 Location-Based Disease Alerts</h1>
+        <p>Community-reported crop disease outbreaks in your district and across Tamil Nadu. Stay protected.</p>
+    </div>
+
+    <!-- My District Alerts -->
+    {% if my_alerts %}
+    <div class="alert-banner glass-panel" style="margin-bottom:2rem;padding:1.5rem 2rem;border-left:4px solid var(--danger);background:rgba(255,82,82,0.08)">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);font-size:1.8rem"></i>
+            <div>
+                <h3 style="margin:0;color:var(--danger)">⚠️ Alerts in Your District: {{ my_district }}</h3>
+                <p style="color:var(--text-muted);margin:0">{{ my_alerts|length }} active disease report(s) near you</p>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+        {% for a in my_alerts %}
+        <div style="background:rgba(0,0,0,0.3);padding:1rem 1.2rem;border-radius:10px;border:1px solid rgba(255,82,82,0.3)">
+            <div style="font-weight:700;color:var(--danger)">{{ a.disease_name }}</div>
+            <div style="color:var(--text-muted);font-size:0.9rem">🌾 {{ a.crop_name }} · {{ a.district }}</div>
+            <div style="margin-top:0.5rem"><span class="status-indicator status-{{ a.severity|lower }}">{{ a.severity }}</span></div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-panel" style="padding:1.5rem 2rem;margin-bottom:2rem;border-left:4px solid var(--primary);background:rgba(0,230,118,0.05)">
+        <i class="fa-solid fa-check-circle" style="color:var(--primary)"></i>
+        <strong style="color:var(--primary)"> No active disease alerts in {{ my_district }}!</strong>
+        <span style="color:var(--text-muted)"> Your district is clear. Stay vigilant and report any outbreaks.</span>
+    </div>
+    {% endif %}
+
+    <!-- Report New Alert -->
+    <div class="glass-panel" style="margin-bottom:2rem;padding:2rem">
+        <h3 style="margin-bottom:1rem"><i class="fa-solid fa-bullhorn" style="color:var(--warning)"></i> Report a Disease Outbreak</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem">Spotted a disease? Alert farmers in your district to protect their crops.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;align-items:end">
+            <div class="form-group" style="margin:0">
+                <label>Your District</label>
+                <input type="text" id="al_district" value="{{ my_district }}" placeholder="e.g. Coimbatore">
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Affected Crop</label>
+                <input type="text" id="al_crop" placeholder="e.g. Rice, Tomato">
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Disease Name</label>
+                <input type="text" id="al_disease" placeholder="e.g. Rice Blast">
+            </div>
+            <div class="form-group" style="margin:0">
+                <label>Severity</label>
+                <select id="al_severity">
+                    <option>Low</option><option selected>Medium</option><option>High</option>
+                </select>
+            </div>
+            <button class="btn btn-danger-outline" style="padding:0.9rem" onclick="submitAlert()">
+                <i class="fa-solid fa-bell"></i> Submit Alert
+            </button>
+        </div>
+        <div id="alertSuccess" style="display:none;margin-top:1rem;color:var(--primary);font-weight:600">
+            <i class="fa-solid fa-check-circle"></i> Alert reported! Nearby farmers will be notified.
+        </div>
+    </div>
+
+    <!-- All Alerts Table -->
+    <div class="table-container glass-panel">
+        <div class="table-header">
+            <h2><i class="fa-solid fa-list" style="color:var(--info)"></i> All Reported Alerts</h2>
+            <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="alertSearch" placeholder="Search district, crop, disease...">
+            </div>
+        </div>
+        {% if all_alerts %}
+        <div style="overflow-x:auto">
+        <table class="data-table" id="alertsTable">
+            <thead><tr><th>District</th><th>Crop</th><th>Disease</th><th>Severity</th><th>Reported By</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for a in all_alerts %}
+            <tr>
+                <td><span class="badge locality-badge"><i class="fa-solid fa-location-dot"></i> {{ a.district }}</span></td>
+                <td class="font-semibold">{{ a.crop_name }}</td>
+                <td>{{ a.disease_name }}</td>
+                <td><span class="status-indicator status-{{ a.severity|lower }}">{{ a.severity }}</span></td>
+                <td>
+                    <div class="farmer-info">
+                        <div class="avatar" style="width:32px;height:32px;font-size:0.9rem">{{ a.username[0]|upper }}</div>
+                        <span>{{ a.username }}</span>
+                    </div>
+                </td>
+                <td style="color:var(--text-muted);font-size:0.85rem">{{ a.reported_at[:10] if a.reported_at else 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><i class="fa-solid fa-shield-halved"></i><p>No alerts reported yet. Help your community by reporting any disease sightings!</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function submitAlert() {
+    const data = {
+        district: document.getElementById('al_district').value,
+        crop: document.getElementById('al_crop').value,
+        disease: document.getElementById('al_disease').value,
+        severity: document.getElementById('al_severity').value,
+    };
+    if (!data.district || !data.crop || !data.disease) { alert('Please fill all fields'); return; }
+    await fetch('/api/report-alert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    document.getElementById('alertSuccess').style.display='block';
+    setTimeout(()=>location.reload(), 2000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const s = document.getElementById('alertSearch');
+    if (s) s.addEventListener('keyup', () => {
+        const f = s.value.toLowerCase();
+        document.querySelectorAll('#alertsTable tbody tr').forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(f) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

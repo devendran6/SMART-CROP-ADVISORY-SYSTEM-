@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Crop Recommendation - SmartCrop{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:3rem">
+    <div class="page-header">
+        <div class="hero-badge"><i class="fa-solid fa-seedling"></i> AI Module</div>
+        <h1>🌾 AI Crop Recommendation</h1>
+        <p>Enter your soil and environmental data. Our AI will suggest the most suitable crops for your farm.</p>
+    </div>
+
+    <div class="recommend-layout">
+        <!-- Input Form -->
+        <div class="recommend-form glass-panel">
+            <h2 style="margin-bottom:0.5rem"><i class="fa-solid fa-flask" style="color:var(--primary)"></i> Farm Conditions</h2>
+            <p style="color:var(--text-muted);margin-bottom:2rem">Enter your soil test report values and environmental data</p>
+
+            <div class="section-divider">🧪 Soil Nutrients (kg/ha)</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nitrogen (N)</label>
+                    <input type="number" id="r_n" value="80" min="0" max="300" placeholder="e.g. 80">
+                </div>
+                <div class="form-group">
+                    <label>Phosphorus (P)</label>
+                    <input type="number" id="r_p" value="40" min="0" max="200" placeholder="e.g. 40">
+                </div>
+                <div class="form-group">
+                    <label>Potassium (K)</label>
+                    <input type="number" id="r_k" value="40" min="0" max="300" placeholder="e.g. 40">
+                </div>
+            </div>
+
+            <div class="section-divider">🌤️ Environmental Conditions</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Temperature (°C)</label>
+                    <input type="number" id="r_temp" value="28" min="0" max="50" placeholder="e.g. 28">
+                </div>
+                <div class="form-group">
+                    <label>Rainfall (mm)</label>
+                    <input type="number" id="r_rain" value="100" min="0" max="500" placeholder="e.g. 100">
+                </div>
+                <div class="form-group">
+                    <label>Humidity (%)</label>
+                    <input type="number" id="r_humidity" value="65" min="0" max="100" placeholder="e.g. 65">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Soil Type</label>
+                    <select id="r_soil">
+                        <option>Loamy</option>
+                        <option>Clayey</option>
+                        <option>Sandy Loam</option>
+                        <option>Black</option>
+                        <option>Red</option>
+                        <option>Alluvial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Soil pH</label>
+                    <input type="number" id="r_ph" value="6.5" min="3" max="10" step="0.1" placeholder="e.g. 6.5">
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="getCropRecommendation()">
+                <i class="fa-solid fa-brain"></i> Analyze & Recommend Crops
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div class="recommend-results">
+            <div id="recLoading" style="display:none" class="glass-panel" style="padding:3rem;text-align:center">
+                <div class="spinner"></div><p style="margin-top:1rem">Analyzing your farm data...</p>
+            </div>
+            <div id="recResults" style="display:none">
+                <h2 style="margin-bottom:1.5rem"><i class="fa-solid fa-trophy" style="color:var(--warning)"></i> Recommended Crops</h2>
+                <div id="recCards"></div>
+            </div>
+            <div id="recPlaceholder" class="glass-panel placeholder-box">
+                <i class="fa-solid fa-seedling placeholder-icon"></i>
+                <h3>Ready to Analyze</h3>
+                <p>Fill in your farm data and click "Analyze" to get AI crop recommendations ranked by suitability score.</p>
+                <div class="tip-list">
+                    <div class="tip"><i class="fa-solid fa-check"></i> Get your soil tested at Krishi Vigyan Kendra</div>
+                    <div class="tip"><i class="fa-solid fa-check"></i> Use average monthly rainfall data</div>
+                    <div class="tip"><i class="fa-solid fa-check"></i> Check local temperature norms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function getCropRecommendation() {
+    document.getElementById('recPlaceholder').style.display = 'none';
+    document.getElementById('recResults').style.display = 'none';
+    document.getElementById('recLoading').style.display = 'block';
+
+    const data = {
+        n: document.getElementById('r_n').value,
+        p: document.getElementById('r_p').value,
+        k: document.getElementById('r_k').value,
+        temp: document.getElementById('r_temp').value,
+        rainfall: document.getElementById('r_rain').value,
+        humidity: document.getElementById('r_humidity').value,
+        soil_type: document.getElementById('r_soil').value,
+        ph: document.getElementById('r_ph').value,
+    };
+
+    const res = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    document.getElementById('recLoading').style.display = 'none';
+
+    const colors = ['#00e676','#ffd740','#40c4ff','#ff8a65','#e040fb'];
+    const icons = ['fa-trophy','fa-medal','fa-award','fa-star','fa-certificate'];
+    let html = '';
+    result.recommendations.forEach((crop, i) => {
+        const pct = Math.min(100, Math.round(crop.score));
+        html += `
+        <div class="rec-card glass-panel" style="border-left:4px solid ${colors[i]};margin-bottom:1.5rem;padding:1.5rem 2rem">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+                <div>
+                    <div style="display:flex;align-items:center;gap:0.8rem">
+                        <i class="fa-solid ${icons[i]}" style="color:${colors[i]};font-size:1.5rem"></i>
+                        <h3 style="font-size:1.5rem;margin:0">${crop.name}</h3>
+                        <span class="badge" style="background:rgba(0,230,118,0.1);color:${colors[i]};border:1px solid ${colors[i]}">Rank #${i+1}</span>
+                    </div>
+                    <div style="color:var(--text-muted);margin-top:0.3rem">Season: ${crop.season} | Best soil: ${crop.soil.join(', ')}</div>
+                </div>
+                <div style="text-align:center;min-width:80px">
+                    <div style="font-size:2rem;font-weight:800;color:${colors[i]}">${pct}%</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted)">Match Score</div>
+                </div>
+            </div>
+            <div class="score-bar"><div class="score-fill" style="width:${pct}%;background:${colors[i]}"></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+                <div class="rec-stat"><i class="fa-solid fa-indian-rupee-sign" style="color:var(--primary)"></i> ₹${crop.price_quintal.toLocaleString()}/quintal market price</div>
+                <div class="rec-stat"><i class="fa-solid fa-weight-scale" style="color:var(--info)"></i> ~${crop.yield_acre} quintals/acre expected yield</div>
+            </div>
+            <div style="margin-top:1rem;display:flex;gap:0.8rem">
+                <a href="/yield-profit?crop=${crop.name}" class="btn btn-outline btn-sm"><i class="fa-solid fa-chart-line"></i> Predict Profit</a>
+                <a href="/disease-detection?crop=${crop.name}" class="btn btn-outline btn-sm"><i class="fa-solid fa-microscope"></i> Disease Info</a>
+            </div>
+        </div>`;
+    });
+    document.getElementById('recCards').innerHTML = html;
+    document.getElementById('recResults').style.display = 'block';
+}
+</script>
+{% endblock %}

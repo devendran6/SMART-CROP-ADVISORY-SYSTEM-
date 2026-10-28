@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Login - SmartCrop{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="nav-brand"><i class="fa-solid fa-leaf"></i> SmartCrop</a>
+</nav>
+<main class="main-content">
+    <div class="container flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}<div class="flash-messages">{% for cat, msg in messages %}<div class="alert alert-{{ cat }}"><i class="fa-solid fa-info-circle"></i> {{ msg }}</div>{% endfor %}</div>{% endif %}
+        {% endwith %}
+    </div>
+    <div class="auth-wrapper">
+        <div class="glass-panel auth-card">
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab {% if action=='login' or not action %}active{% endif %}" onclick="showTab('login')">
+                    <i class="fa-solid fa-sign-in-alt"></i> Login
+                </button>
+                <button class="auth-tab {% if action=='register' %}active{% endif %}" onclick="showTab('register')">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginPane" style="display:{% if action=='register' %}none{% else %}block{% endif %}">
+                <div class="auth-header">
+                    <div class="auth-icon"><i class="fa-solid fa-leaf"></i></div>
+                    <h2>Welcome Back</h2>
+                    <p>Log in to your Smart Crop Advisory account</p>
+                </div>
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user"></i> Username</label>
+                        <input type="text" name="username" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Password</label>
+                        <input type="password" name="password" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fa-solid fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" onclick="showTab('register')">Register Free</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerPane" style="display:{% if action=='register' %}block{% else %}none{% endif %}">
+                <div class="auth-header">
+                    <div class="auth-icon"><i class="fa-solid fa-tractor"></i></div>
+                    <h2>Join SmartCrop</h2>
+                    <p>Create your free farmer account</p>
+                </div>
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-user"></i> Username</label>
+                            <input type="text" name="username" placeholder="Choose username" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-lock"></i> Password</label>
+                            <input type="password" name="password" placeholder="Create password" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-location-dot"></i> Village / Town</label>
+                            <input type="text" name="location" placeholder="e.g. Pollachi" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-map"></i> District</label>
+                            <input type="text" name="district" placeholder="e.g. Coimbatore" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-phone"></i> Contact / Email</label>
+                        <input type="text" name="contact" placeholder="Phone or email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fa-solid fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Already have an account? <a href="#" onclick="showTab('login')">Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+function showTab(tab) {
+    document.getElementById('loginPane').style.display = tab==='login' ? 'block' : 'none';
+    document.getElementById('registerPane').style.display = tab==='register' ? 'block' : 'none';
+    document.querySelectorAll('.auth-tab').forEach((t,i)=> t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Crop Advisory{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fa-solid fa-leaf"></i> SmartCrop
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="nav-item"><i class="fa-solid fa-home"></i> Home</a>
+            <a href="{{ url_for('download_page') }}" class="nav-item" style="color:var(--primary)"><i class="fa-brands fa-android"></i> App (APK)</a>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="{{ url_for('crop_recommendation') }}" class="nav-item"><i class="fa-solid fa-seedling"></i> Recommend</a>
+            <a href="{{ url_for('disease_detection') }}" class="nav-item"><i class="fa-solid fa-microscope"></i> Disease</a>
+            <a href="{{ url_for('yield_profit') }}" class="nav-item"><i class="fa-solid fa-chart-line"></i> Profit</a>
+            <a href="{{ url_for('weather_page') }}" class="nav-item"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
+            <a href="{{ url_for('alerts_page') }}" class="nav-item"><i class="fa-solid fa-bell"></i> Alerts</a>
+            <div class="user-profile">
+                <span class="user-greeting"><i class="fa-solid fa-user-circle"></i> {{ session.get('username') }}</span>
+                <a href="{{ url_for('profile') }}" class="btn btn-outline btn-sm">My Farm</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger-outline btn-sm">Logout</a>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Login / Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container flash-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <i class="fa-solid fa-{% if category=='success' %}check-circle{% elif category=='danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- AI AgriBot Widget -->
+    <div class="ai-widget">
+        <button class="ai-toggle" id="aiToggleBtn" onclick="toggleAIChat()" title="AgriBot Assistant">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div class="ai-chat-window glass-panel" id="aiChatWindow">
+            <div class="ai-header">
+                <i class="fa-solid fa-leaf"></i>
+                <div>
+                    <div style="font-weight:800">AgriBot Assistant</div>
+                    <div style="font-size:0.75rem;opacity:0.8">Smart Crop Advisory AI</div>
+                </div>
+                <button class="ai-close-btn" onclick="toggleAIChat()"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="ai-messages" id="aiMessages">
+                <div class="ai-msg msg-system">
+                    🙏 Welcome! I'm your Smart Crop Advisory AI. Ask me about:<br>
+                    🌾 Crop recommendations | 🔬 Disease help<br>
+                    💰 Profit estimates | 🌤️ Weather | 💧 Irrigation
+                </div>
+            </div>
+            <!-- Tamil Voice Assistant -->
+            <div class="tamil-section">
+                <div class="tamil-header">
+                    <i class="fa-solid fa-microphone"></i>
+                    <span>தமிழ் உதவியாளர் (Tamil Assistant)</span>
+                </div>
+                <div class="tamil-input-area">
+                    <input type="text" id="tamilInput" placeholder="தமிழில் கேளுங்கள்...">
+                    <button onclick="sendTamilMessage()" class="btn-tamil"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button onclick="startVoice()" class="btn-voice" id="voiceBtn" title="Speak in Tamil">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+                <div id="tamilResponse" class="tamil-response" style="display:none"></div>
+            </div>
+            <div class="ai-input-area">
+                <input type="text" id="aiInput" placeholder="Ask about crops, disease, market..." onkeypress="handleAIKeyPress(event)">
+                <button onclick="sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

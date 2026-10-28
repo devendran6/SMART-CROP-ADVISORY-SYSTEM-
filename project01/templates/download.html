@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Download Android APK - SmartCrop Advisory{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2.5rem;padding-bottom:4rem">
+    <div class="page-header text-center" style="max-width:800px;margin:0 auto 3rem">
+        <div class="hero-badge"><i class="fa-brands fa-android"></i> Official Mobile Application</div>
+        <h1 style="font-size:2.8rem">Download Smart Crop Advisory for Android</h1>
+        <p style="font-size:1.15rem;color:var(--text-muted)">
+            Take intelligent crop recommendations, disease detection camera, weather alerts, and Tamil voice assistant directly into your fields.
+        </p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:2.5rem;align-items:start">
+        <!-- Download Card -->
+        <div class="glass-panel" style="padding:2.5rem;text-align:center;border:2px solid var(--primary);box-shadow:var(--glow)">
+            <img src="{{ url_for('static', filename='img/app-icon.png') }}" alt="SmartCrop App Icon" style="width:100px;height:100px;border-radius:24px;border:3px solid var(--primary);box-shadow:var(--glow);margin-bottom:1.5rem">
+            
+            <h2 style="font-size:1.8rem;margin-bottom:0.4rem">SmartCrop Advisory Mobile</h2>
+            <div style="color:var(--primary);font-weight:700;font-size:0.95rem;margin-bottom:1rem">
+                v1.0.0 Release · Android APK
+            </div>
+
+            <div style="display:inline-flex;gap:1.5rem;background:rgba(0,0,0,0.3);padding:0.6rem 1.2rem;border-radius:var(--radius-round);margin-bottom:1.8rem;font-size:0.85rem;color:var(--text-muted)">
+                <span><i class="fa-solid fa-file-zipper" style="color:var(--primary)"></i> 16.5 KB</span>
+                <span><i class="fa-brands fa-android" style="color:var(--info)"></i> Android 5.0+</span>
+                <span><i class="fa-solid fa-language" style="color:var(--warning)"></i> தமிழ் & English</span>
+            </div>
+
+            <!-- Direct Download Button -->
+            <a href="{{ url_for('download_apk') }}" class="btn btn-primary btn-block btn-lg" style="font-size:1.15rem;padding:1rem;margin-bottom:1rem">
+                <i class="fa-solid fa-download"></i> Download APK Directly
+            </a>
+
+            <!-- Online GitHub Raw Download Link -->
+            <a href="https://raw.githubusercontent.com/devendran6/SMART-CROP-ADVISORY-SYSTEM-/main/project01/static/downloads/SmartCropAdvisory.apk" target="_blank" class="btn btn-outline btn-block" style="font-size:0.9rem">
+                <i class="fa-brands fa-github"></i> Download from GitHub Online
+            </a>
+
+            <div style="margin-top:1.5rem;font-size:0.85rem;color:var(--text-muted)">
+                <i class="fa-solid fa-shield-check" style="color:var(--primary)"></i> 100% Virus-Free & Safe · Verified by SHA-256 APK Signer
+            </div>
+        </div>
+
+        <!-- Installation Instructions -->
+        <div class="glass-panel" style="padding:2.5rem">
+            <h2 style="font-size:1.6rem;margin-bottom:1.5rem">
+                <i class="fa-solid fa-mobile-screen-button" style="color:var(--info)"></i> How to Install on Your Android Phone
+            </h2>
+
+            <div style="display:flex;flex-direction:column;gap:1.5rem">
+                <div style="display:flex;gap:1rem;align-items:flex-start">
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:var(--bg-dark);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">1</div>
+                    <div>
+                        <h4 style="font-size:1.1rem;margin-bottom:0.2rem">Download APK</h4>
+                        <p style="color:var(--text-muted);font-size:0.9rem">Tap the green <b>Download APK Directly</b> button on your phone browser. File will save to your Downloads folder.</p>
+                        <p style="color:var(--warning);font-size:0.85rem"><i>APK பதிவிறக்கம் செய்ய பச்சை நிற பொத்தானை அழுத்தவும்.</i></p>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:1rem;align-items:flex-start">
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:var(--bg-dark);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">2</div>
+                    <div>
+                        <h4 style="font-size:1.1rem;margin-bottom:0.2rem">Allow Unknown Sources</h4>
+                        <p style="color:var(--text-muted);font-size:0.9rem">When prompted, go to <b>Settings > Allow installation from this source</b> (Chrome / File Manager).</p>
+                        <p style="color:var(--warning);font-size:0.85rem"><i>அமைப்புகள் (Settings) சென்று 'அனுமதி' (Allow) என்பதைத் தேர்ந்தெடுக்கவும்.</i></p>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:1rem;align-items:flex-start">
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:var(--bg-dark);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">3</div>
+                    <div>
+                        <h4 style="font-size:1.1rem;margin-bottom:0.2rem">Install & Open</h4>
+                        <p style="color:var(--text-muted);font-size:0.9rem">Tap <b>Install</b>. Once completed, tap <b>Open</b> to access Smart Crop Advisory anywhere in your farm!</p>
+                        <p style="color:var(--warning);font-size:0.85rem"><i>நிறுவு (Install) செய்த பின் செயலியை திறந்து உடனடியாக பயன்படுத்தலாம்.</i></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Helpline Box -->
+            <div style="margin-top:2rem;padding:1.2rem;background:rgba(0,230,118,0.08);border:1px solid var(--glass-border);border-radius:12px">
+                <div style="font-weight:700;color:var(--primary);margin-bottom:0.3rem"><i class="fa-solid fa-headset"></i> Need help installing?</div>
+                <div style="font-size:0.88rem;color:var(--text-muted)">Call Kisan Call Centre Toll-Free: <b>1800-180-1551</b> or mail us at <b>support@smartcrop.in</b></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
